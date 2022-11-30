@@ -20,6 +20,7 @@ export type Track = {
   adds: number | string;
   title: string;
   playlistUrl: string;
+  number: number;
 };
 
 export const getToken = () => {
@@ -107,7 +108,7 @@ export const findTrack = async (
     try {
       const resp = await getPlaylist(pl);
       let count = 0;
-      for (const item of resp.response.items) {
+      for (const [i, item] of resp.response.items.entries()) {
         const s = `${item.artist} - ${item.title}`;
         if (s.match(exp)) {
           console.log(`Match: ${s}`);
@@ -119,6 +120,7 @@ export const findTrack = async (
               adds: likes - 1,
               playlistUrl: pl.url,
               title: `${item.artist} ${item.title}`,
+              number: i + 1,
             });
             count++;
             break;
@@ -129,6 +131,7 @@ export const findTrack = async (
               adds: 'PRIVATE',
               playlistUrl: pl.url,
               title: `${item.artist} ${item.title}`,
+              number: 0,
             });
             count++;
             break;
@@ -142,15 +145,18 @@ export const findTrack = async (
           title: 'NO TRACK',
           adds: 'NO TRACK',
           id: 0,
+          number: 0,
         });
       }
-    } catch {
+    } catch (e) {
+      console.log(e);
       tracks.push({
         ownerId: 0,
         playlistUrl: pl.url,
         title: '',
         adds: 'ERROR',
         id: 0,
+        number: 0,
       });
     }
     if (i % 10 === 0) {
@@ -161,10 +167,10 @@ export const findTrack = async (
 };
 
 export const buildXls = (tracks: Track[]) => {
-  const data = tracks.map(t => [t.playlistUrl, t.title, t.adds]);
+  const data = tracks.map(t => [t.playlistUrl, t.title, t.adds, t.number]);
   return xlsx.build([
     {
-      data: [['Playlist URL', 'Track', 'Adds'], ...data],
+      data: [['Playlist URL', 'Track', 'Adds', 'Number'], ...data],
       name: 'Adds',
       options: {},
     },
